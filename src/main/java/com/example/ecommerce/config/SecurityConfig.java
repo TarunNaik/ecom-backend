@@ -23,12 +23,15 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            .csrf().disable()
+            .cors().and().csrf().disable()
+            .headers().frameOptions().disable() // Allow H2 console to be displayed in frames
+            .and()
             .userDetailsService(userDetailsService) // Configure UserDetailsService
             .authorizeRequests()
-            .antMatchers("/api/auth/**", "/api/products").permitAll() // Allow public access to auth and product list
-            .antMatchers("/api/vendors/**").hasAuthority("ROLE_VENDOR") // Vendor specific endpoints
-            .antMatchers("/api/admin/**").hasAuthority("ROLE_ADMIN") // Admin specific endpoints
+            .antMatchers("/h2-console/**").permitAll() // Allow H2 console access
+            .antMatchers("/api/auth/**", "/api/products/**", "/vendor/products/**").permitAll() // Allow public access to auth and product list
+            .antMatchers("/api/products/**").hasAuthority("ROLE_VENDOR") // Vendor specific endpoints
+//            .antMatchers("/api/admin/**").hasAuthority("ADMIN") // Admin specific endpoints
             .anyRequest().authenticated()
             .and()
             .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS); // Use stateless sessions for REST API

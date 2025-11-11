@@ -8,7 +8,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-
+@CrossOrigin(origins = "http://localhost:3000", allowCredentials = "true")
+@RequestMapping("/api/products")
 @RestController
 public class ProductController {
 
@@ -23,13 +24,13 @@ public class ProductController {
     }
 
     // Public endpoint: GET /api/products
-    @GetMapping("/api/products")
+    @GetMapping("/list")
     public List<Product> getAllProducts() {
         return productService.getAllProducts();
     }
 
     // Public endpoint: GET /api/products/{id}
-    @GetMapping("/api/products/{id}")
+    @GetMapping("/{id}")
     public ResponseEntity<Product> getProductById(@PathVariable Long id) {
         return productService.getProductById(id)
                 .map(ResponseEntity::ok)
@@ -37,7 +38,7 @@ public class ProductController {
     }
 
     // Vendor endpoint: POST /api/vendors/products
-    @PostMapping("/api/vendors/products")
+    @PostMapping("/add")
     public ResponseEntity<Product> createProduct(@RequestBody Product product) {
         try {
             Product createdProduct = productService.createProduct(product);
@@ -48,7 +49,7 @@ public class ProductController {
     }
 
     // Vendor endpoint: PUT /api/vendors/products/{id}
-    @PutMapping("/api/vendors/products/{id}")
+    @PutMapping("/update/{id}")
     public ResponseEntity<Product> updateProduct(@PathVariable Long id, @RequestBody Product product) {
         try {
             Product updatedProduct = productService.updateProduct(id, product);
@@ -61,7 +62,7 @@ public class ProductController {
     }
 
     // Vendor endpoint: DELETE /api/vendors/products/{id}
-    @DeleteMapping("/api/vendors/products/{id}")
+    @DeleteMapping("/delete/{id}")
     public ResponseEntity<Void> deleteProduct(@PathVariable Long id) {
         try {
             productService.deleteProduct(id);

@@ -60,16 +60,20 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<String> authenticateUser(@RequestBody LoginRequest loginRequest) {
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword()));
-//        UserDetails userDetails = userDetailsService.loadUserByUsername(loginRequest.getEmail());
-        List<String> roles = List.of("vendor", "admin", "buyer");
-//        userDetails.getAuthorities().forEach(authority -> {
-//            roles.add(authority.getAuthority());
-//        });
-        SecurityContextHolder.getContext().setAuthentication(authentication);
+        try {
+            Authentication authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword()));
+            UserDetails userDetails = userDetailsService.loadUserByUsername(loginRequest.getEmail());
+            List<String> roles = new ArrayList<>();
+            userDetails.getAuthorities().forEach(authority -> {
+                roles.add(authority.getAuthority());
+            });
+            SecurityContextHolder.getContext().setAuthentication(authentication);
 
-        // In a real application, you would generate a JWT here.
-        return new ResponseEntity<>(String.join(", ", roles), HttpStatus.OK);
+            // In a real application, you would generate a JWT here.
+            return new ResponseEntity<>(String.join(", ", roles), HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>("Error: Invalid email or password", HttpStatus.UNAUTHORIZED);
+        }
     }
 }
