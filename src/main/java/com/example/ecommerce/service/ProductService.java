@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import java.util.List;
 import java.util.Optional;
@@ -22,9 +23,12 @@ public class ProductService {
     private UserRepository userRepository;
 
     // Helper method to get the currently authenticated user
-    private User getCurrentUser() {
+    private User getCurrentUser(String email) {
+        if(StringUtils.hasText(email)) {
+            return userRepository.findByEmail(email);
+        }
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        String email;
+
         if (principal instanceof UserDetails) {
             email = ((UserDetails) principal).getUsername();
         } else {
@@ -34,8 +38,8 @@ public class ProductService {
     }
 
     // Create a new product (only for VENDOR)
-    public Product createProduct(Product product) {
-        User vendor = getCurrentUser();
+    public Product createProduct(Product product, String email) {
+        User vendor = getCurrentUser(email);
         if (vendor == null || !vendor.getRole().equalsIgnoreCase("VENDOR")) {
             throw new SecurityException("Only vendors can create products.");
         }
@@ -61,7 +65,7 @@ public class ProductService {
         }
 
         Product existingProduct = existingProductOpt.get();
-        User vendor = getCurrentUser();
+        User vendor = getCurrentUser(null);
 
         if (vendor == null || !existingProduct.getVendor().getId().equals(vendor.getId())) {
             throw new SecurityException("You are not authorized to update this product.");
@@ -83,7 +87,7 @@ public class ProductService {
         }
 
         Product existingProduct = existingProductOpt.get();
-        User vendor = getCurrentUser();
+        User vendor = getCurrentUser(null);
 
         if (vendor == null || !existingProduct.getVendor().getId().equals(vendor.getId())) {
             throw new SecurityException("You are not authorized to delete this product.");

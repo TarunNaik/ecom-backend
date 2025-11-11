@@ -2,6 +2,7 @@ package com.example.ecommerce.controller;
 
 import com.example.ecommerce.model.Product;
 import com.example.ecommerce.service.ProductService;
+import com.example.ecommerce.util.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,6 +18,8 @@ public class ProductController {
 
     @Autowired
     private ProductService productService;
+    @Autowired
+    private JwtUtil jwtUtil;
 
     @GetMapping("/api/auth/test")
     public ResponseEntity<String> testEndpoint() {
@@ -39,9 +42,11 @@ public class ProductController {
 
     // Vendor endpoint: POST /api/vendors/products
     @PostMapping("/add")
-    public ResponseEntity<Product> createProduct(@RequestBody Product product) {
+    public ResponseEntity<Product> createProduct(@RequestBody Product product, @RequestHeader("Authorization") String authHeader) {
         try {
-            Product createdProduct = productService.createProduct(product);
+            String token = authHeader.replace("Bearer ", "");
+            String email = jwtUtil.extractClaims(token).getSubject(); // get email/username from JWT
+            Product createdProduct = productService.createProduct(product, email);
             return new ResponseEntity<>(createdProduct, HttpStatus.CREATED);
         } catch (SecurityException e) {
             return new ResponseEntity<>(HttpStatus.FORBIDDEN);

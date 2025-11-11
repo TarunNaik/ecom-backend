@@ -29,8 +29,8 @@ public class SecurityConfig {
             .userDetailsService(userDetailsService) // Configure UserDetailsService
             .authorizeRequests()
             .antMatchers("/h2-console/**").permitAll() // Allow H2 console access
-            .antMatchers("/api/auth/**", "/api/products/**", "/vendor/products/**").permitAll() // Allow public access to auth and product list
-            .antMatchers("/api/products/**").hasAuthority("ROLE_VENDOR") // Vendor specific endpoints
+            .antMatchers("/api/**").permitAll() // Allow public access to auth and product list
+//            .antMatchers("/api/products/**").hasAuthority("ROLE_VENDOR") // Vendor specific endpoints
 //            .antMatchers("/api/admin/**").hasAuthority("ADMIN") // Admin specific endpoints
             .anyRequest().authenticated()
             .and()

@@ -5,6 +5,7 @@ import com.example.ecommerce.payload.LoginRequest;
 import com.example.ecommerce.payload.RegisterRequest;
 import com.example.ecommerce.repository.UserRepository;
 import com.example.ecommerce.service.UserDetailsServiceImpl;
+import com.example.ecommerce.util.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -33,6 +34,8 @@ public class AuthController {
     private PasswordEncoder passwordEncoder;
     @Autowired
     private UserDetailsServiceImpl userDetailsService;
+    @Autowired
+    private JwtUtil jwtUtil;
 
     @PostMapping("/register")
     public ResponseEntity<String> registerUser(@RequestBody RegisterRequest registerRequest) {
@@ -64,14 +67,11 @@ public class AuthController {
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword()));
             UserDetails userDetails = userDetailsService.loadUserByUsername(loginRequest.getEmail());
-            List<String> roles = new ArrayList<>();
-            userDetails.getAuthorities().forEach(authority -> {
-                roles.add(authority.getAuthority());
-            });
+            String role = userDetails.getAuthorities().iterator().next().getAuthority();
             SecurityContextHolder.getContext().setAuthentication(authentication);
-
+            String token = jwtUtil.generateToken(loginRequest.getEmail(), role);
             // In a real application, you would generate a JWT here.
-            return new ResponseEntity<>(String.join(", ", roles), HttpStatus.OK);
+            return ResponseEntity.ok(token);
         } catch (Exception e) {
             return new ResponseEntity<>("Error: Invalid email or password", HttpStatus.UNAUTHORIZED);
         }
