@@ -1,0 +1,62 @@
+# Ignore Maven target directory
+/target/
+
+# Ignore log files
+*.log
+
+# Ignore compiled class files
+*.class
+
+# Ignore IDE specific files
+/.idea/
+/.vscode/
+*.iml
+
+# Ignore Mac system files
+.DS_Store
+
+# Ignore Maven wrapper files
+mvnw*
+
+# Ignore OS generated files
+Thumbs.db
+
+# Ignore build output
+/build/
+
+# Ignore test output
+/test-output/
+
+# Ignore environment files
+.env
+
+# Ignore node modules (if any)
+/node_modules/
+
+# Ignore coverage reports
+/coverage/
+
+# Ignore generated files
+/generated/
+
+# Ignore backup files
+*.bak
+
+# Ignore temporary files
+*.tmp
+
+# Ignore IntelliJ project files
+*.ipr
+*.iws
+*.bak
+
+# Ignore logs
+logs/
+
+# Ignore other IDE files
+*.swp
+*.swo
+
+# Ignore Eclipse project files
+*.project
+*.classpath

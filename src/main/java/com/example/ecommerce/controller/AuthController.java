@@ -1,9 +1,12 @@
 package com.example.ecommerce.controller;
 
+import com.example.ecommerce.model.PasswordResetToken;
 import com.example.ecommerce.model.User;
 import com.example.ecommerce.payload.LoginRequest;
 import com.example.ecommerce.payload.RegisterRequest;
 import com.example.ecommerce.repository.UserRepository;
+import com.example.ecommerce.service.EmailService;
+import com.example.ecommerce.service.PasswordResetService;
 import com.example.ecommerce.service.UserDetailsServiceImpl;
 import com.example.ecommerce.util.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +22,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -36,6 +41,26 @@ public class AuthController {
     private UserDetailsServiceImpl userDetailsService;
     @Autowired
     private JwtUtil jwtUtil;
+    @Autowired
+    private PasswordResetService passwordResetService;
+
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<String> forgotPassword(@RequestBody Map<String, String> request) {
+        String email = request.get("email");
+
+        passwordResetService.processForgotPassword(email);
+        return ResponseEntity.ok("Reset email sent");
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<String> resetPassword(@RequestBody Map<String, String> request) {
+        String token = request.get("token");
+        String newPassword = request.get("newPassword");
+
+        return passwordResetService.processResetPassword(token, newPassword);
+
+    }
 
     @PostMapping("/register")
     public ResponseEntity<String> registerUser(@RequestBody RegisterRequest registerRequest) {
@@ -48,7 +73,7 @@ public class AuthController {
         user.setName(registerRequest.getName());
         user.setEmail(registerRequest.getEmail());
         user.setPassword(passwordEncoder.encode(registerRequest.getPassword()));
-        
+
         // Default role to BUYER if not specified or invalid
         String role = registerRequest.getRole() != null ? registerRequest.getRole().toUpperCase() : "BUYER";
         if (!role.equals("BUYER") && !role.equals("VENDOR") && !role.equals("ADMIN")) {
