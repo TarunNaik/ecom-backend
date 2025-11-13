@@ -1,13 +1,13 @@
 package com.example.ecommerce.model;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import jakarta.persistence.GenerationType;
 
 import jakarta.persistence.*;
-@Data
+@Getter
+@Setter
+@ToString(exclude = "cart")
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity

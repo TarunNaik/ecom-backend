@@ -67,6 +67,17 @@ public class BuyerController {
             return new ResponseEntity<>(HttpStatus.FORBIDDEN);
         }
     }
+    //Buyer endpoint: Remove from Cart /api/buyer/cart/remove/{productId}
+    @DeleteMapping("/cart/remove/{productId}")
+    public ResponseEntity<String> removeFromCart(@PathVariable Long productId, @RequestHeader("Authorization") String jwtToken) {
+        try {
+            buyerService.removeItemFromCart(productId, jwtToken);
+            return ResponseEntity.ok("Product removed from cart");
+        } catch (SecurityException e) {
+            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+        }
+    }
+
     // Buyer endpoint: Add Wishlist /api/buyer/wishlist/add/{productId}
     @PostMapping("/wishlist/add/{productId}")
     public ResponseEntity<String> addToWishlist(@PathVariable Long productId, @RequestHeader("Authorization") String jwtToken) {

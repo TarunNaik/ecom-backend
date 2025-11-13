@@ -1,15 +1,14 @@
 package com.example.ecommerce.model;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import jakarta.persistence.*;
 import java.util.List;
 
-@Data
+@Getter
+@Setter
+@ToString(exclude = "items")
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor

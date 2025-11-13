@@ -184,4 +184,23 @@ public class BuyerService {
             wishlistItemRepository.delete(wishlistItem);
         }
     }
+
+    public void removeItemFromCart(Long productId, String jwtToken) throws SecurityException {
+        checkBuyerAccess(jwtToken);
+        String token = jwtToken.replace("Bearer ", "");
+        Claims claims = jwtUtil.extractClaims(token);
+        String email = claims.getSubject();
+        User buyer = userRepository.findByEmail(email);
+        if (buyer == null) {
+            throw new IllegalArgumentException("Buyer not found.");
+        }
+        Cart cart = cartRepository.findByBuyerId(buyer.getId());
+        if (cart == null) {
+            throw new IllegalArgumentException("Cart not found.");
+        }
+        CartItem cartItem = cartItemRepository.findByCartIdAndProductId(cart.getId(), productId);
+        if (cartItem != null) {
+            cartItemRepository.delete(cartItem);
+        }
+    }
 }
