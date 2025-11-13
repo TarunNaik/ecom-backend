@@ -1,5 +1,6 @@
 package com.example.ecommerce.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -15,6 +16,7 @@ public class CartItem {
     @GeneratedValue(strategy = javax.persistence.GenerationType.IDENTITY)
     private Long id;
     @ManyToOne
+    @JsonBackReference
     private Cart cart;
     @ManyToOne
     private Product product;

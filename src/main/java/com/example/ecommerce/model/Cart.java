@@ -1,5 +1,6 @@
 package com.example.ecommerce.model;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -23,5 +24,6 @@ public class Cart {
     private User buyer;
 
     @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL)
+    @JsonManagedReference
     private List<CartItem> items;
 }
