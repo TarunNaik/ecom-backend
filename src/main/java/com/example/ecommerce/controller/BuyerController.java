@@ -16,6 +16,17 @@ public class BuyerController {
 
     @Autowired
     private BuyerService buyerService;
+    // Buyer endpoint: GET /api/buyer/wishlist
+    @GetMapping("/wishlist")
+    public ResponseEntity<List<Product>> getWishlist(@RequestHeader("Authorization") String jwtToken) {
+        try {
+            List<Product> wishlist = buyerService.getWishlist(jwtToken);
+            return ResponseEntity.ok(wishlist);
+        } catch (SecurityException e) {
+            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+        }
+    }
+
     // Buyer endpoint: GET /api/buyer/cart
     @GetMapping("/cart")
     public ResponseEntity<List<CartItem>> getCartItems(@RequestHeader("Authorization") String jwtToken) {
@@ -52,6 +63,26 @@ public class BuyerController {
         try {
             buyerService.addItemToCart(productId, count, jwtToken);
             return ResponseEntity.ok("Product added to cart");
+        } catch (SecurityException e) {
+            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+        }
+    }
+    // Buyer endpoint: Add Wishlist /api/buyer/wishlist/add/{productId}
+    @PostMapping("/wishlist/add/{productId}")
+    public ResponseEntity<String> addToWishlist(@PathVariable Long productId, @RequestHeader("Authorization") String jwtToken) {
+        try {
+            buyerService.addItemToWishlist(productId, jwtToken);
+            return ResponseEntity.ok("Product added to wishlist");
+        } catch (SecurityException e) {
+            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+        }
+    }
+    // Buyer endpoints: Removefrom Wishlist /api/buyer/wishlist/remove/{productId}
+    @DeleteMapping("/wishlist/remove/{productId}")
+    public ResponseEntity<String> removeFromWishlist(@PathVariable Long productId, @RequestHeader("Authorization") String jwtToken) {
+        try {
+            buyerService.removeItemFromWishlist(productId, jwtToken);
+            return ResponseEntity.ok("Product removed from wishlist");
         } catch (SecurityException e) {
             return new ResponseEntity<>(HttpStatus.FORBIDDEN);
         }
