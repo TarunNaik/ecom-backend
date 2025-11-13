@@ -22,19 +22,17 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http
-            .cors().and().csrf().disable()
-            .headers().frameOptions().disable() // Allow H2 console to be displayed in frames
-            .and()
+        http.cors(cors -> cors.disable())
+            .csrf(csrf -> csrf.disable()) // Disable CSRF for simplicity in REST APIs
+            .headers(headers -> headers.frameOptions(frameOptions -> frameOptions.sameOrigin())) // Allow H
             .userDetailsService(userDetailsService) // Configure UserDetailsService
-            .authorizeRequests()
-            .antMatchers("/h2-console/**").permitAll() // Allow H2 console access
-            .antMatchers("/api/**").permitAll() // Allow public access to auth and product list
-//            .antMatchers("/api/products/**").hasAuthority("ROLE_VENDOR") // Vendor specific endpoints
-//            .antMatchers("/api/admin/**").hasAuthority("ADMIN") // Admin specific endpoints
+            .authorizeHttpRequests(auth -> auth
+            .requestMatchers("/h2-console/**").permitAll() // Allow H2 console access
+            .requestMatchers("/api/**").permitAll() // Allow public access to auth and product list
+//            .requestMatchers("/api/products/**").hasAuthority("ROLE_VENDOR") // Vendor specific endpoints
+//            .requestMatchers("/api/admin/**").hasAuthority("ADMIN") // Admin specific endpoints
             .anyRequest().authenticated()
-            .and()
-            .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS); // Use stateless sessions for REST API
+            ).sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));// Use stateless sessions for REST API
         return http.build();
     }
 

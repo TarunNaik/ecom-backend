@@ -4,8 +4,9 @@ import com.fasterxml.jackson.annotation.JsonBackReference;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import jakarta.persistence.GenerationType;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -13,7 +14,7 @@ import javax.persistence.*;
 @Table(name="cart_items")
 public class CartItem {
     @Id
-    @GeneratedValue(strategy = javax.persistence.GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     @ManyToOne
     @JsonBackReference
