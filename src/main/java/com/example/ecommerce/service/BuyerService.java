@@ -31,65 +31,49 @@ public class BuyerService {
     @Autowired
     WishlistItemRepository wishlistItemRepository;
 
-    // Buyer-related business logic would go here
-    public List<Product> getAvailableProducts(String jwtToken) {
-        // Implementation to fetch available products for buyers
-        checkBuyerAccess(jwtToken);
-        return productRepository.findAll(); // Placeholder return
-    }
-
-    private void checkBuyerAccess(String jwtToken) throws SecurityException {
-        // Implementation to check if the JWT token belongs to a buyer
+    /**
+     * Check if the JWT token belongs to a buyer and return the User
+     * @param jwtToken
+     * @throws SecurityException
+     */
+    private User checkBuyerAccess(String jwtToken) throws SecurityException {
         if(jwtToken == null || !jwtToken.startsWith("Bearer ")) {
             throw new SecurityException("Missing or invalid Authorization header.");
         }
         String token = jwtToken.replace("Bearer ", "");
-        // Extract claims from the token and verify the role
-        // If the role is not "ROLE_BUYER", throw SecurityException
         Claims claims = jwtUtil.extractClaims(token);
         String role = claims.get("role", String.class);
-        // Throw SecurityException if access is denied
         if (role == null || !role.equalsIgnoreCase("ROLE_BUYER")) {
             throw new SecurityException("Access Denied: Only Buyer can perform this action.");
         }
-
-
-    }
-
-    public List<Order> getBuyerOrders(String jwtToken) throws SecurityException {
-        checkBuyerAccess(jwtToken);
-        String token = jwtToken.replace("Bearer ", "");
-        Claims claims = jwtUtil.extractClaims(token);
         String email = claims.getSubject();
         User buyer = userRepository.findByEmail(email);
         if (buyer == null) {
             throw new IllegalArgumentException("Buyer not found.");
         }
+        return buyer;
+    }
+
+    // Buyer-related business logic would go here
+    public List<Product> getAvailableProducts(String jwtToken) {
+        checkBuyerAccess(jwtToken);
+        return productRepository.findAll(); // Placeholder return
+    }
+
+    public List<Order> getBuyerOrders(String jwtToken) throws SecurityException {
+        User buyer = checkBuyerAccess(jwtToken);
         return orderRepository.findByBuyerId(buyer.getId());
     }
 
     public void addItemToCart(Long productId, int quantity, String jwtToken) throws SecurityException {
-        checkBuyerAccess(jwtToken);
-        // Implementation to add a product to the buyer's cart
-        // This is a placeholder implementation
-        String token = jwtToken.replace("Bearer ", "");
-        Claims claims = jwtUtil.extractClaims(token);
-        String email = claims.getSubject();
-        User buyer = userRepository.findByEmail(email);
-        if (buyer == null) {
-            throw new IllegalArgumentException("Buyer not found.");
-        }
+        User buyer = checkBuyerAccess(jwtToken);
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new IllegalArgumentException("Product not found."));
-        // Logic to add the product to the buyer's cart would go here
-        // 2. Find or create cart
         Cart cart = cartRepository.findByBuyerId(buyer.getId());
         if (cart == null) {
             cart = Cart.builder().buyer(buyer).build();
             cart = cartRepository.save(cart);
         }
-
-        // 3. Check if product is already in cart
         CartItem cartItem = cartItemRepository.findByCartIdAndProductId(cart.getId(), productId);
         if (cartItem != null) {
             cartItem.setQuantity(cartItem.getQuantity() + quantity);
@@ -103,14 +87,7 @@ public class BuyerService {
     }
 
     public List<CartItem> getCartItems(String jwtToken) throws SecurityException {
-        checkBuyerAccess(jwtToken);
-        String token = jwtToken.replace("Bearer ", "");
-        Claims claims = jwtUtil.extractClaims(token);
-        String email = claims.getSubject();
-        User buyer = userRepository.findByEmail(email);
-        if (buyer == null) {
-            throw new IllegalArgumentException("Buyer not found.");
-        }
+        User buyer = checkBuyerAccess(jwtToken);
         Cart cart = cartRepository.findByBuyerId(buyer.getId());
         if (cart == null) {
             throw new IllegalArgumentException("Cart not found.");
@@ -119,27 +96,14 @@ public class BuyerService {
     }
 
     public void addItemToWishlist(Long productId, String jwtToken) {
-        checkBuyerAccess(jwtToken);
-        // Implementation to add a product to the buyer's wishlist
-        // This is a placeholder implementation
-        String token = jwtToken.replace("Bearer ", "");
-        Claims claims = jwtUtil.extractClaims(token);
-        String email = claims.getSubject();
-        User buyer = userRepository.findByEmail(email);
-        if (buyer == null) {
-            throw new IllegalArgumentException("Buyer not found.");
-        }
+        User buyer = checkBuyerAccess(jwtToken);
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new IllegalArgumentException("Product not found."));
-        // Logic to add the product to the buyer's wishlist would go here
-        // Find or create wishlist
         Wishlist wishlist = wishlistRepository.findByBuyerId(buyer.getId());
         if (wishlist == null) {
             wishlist = Wishlist.builder().buyer(buyer).build();
             wishlist = wishlistRepository.save(wishlist);
         }
-
-        // Check if product is already in wishlist
         WishlistItem wishlistItem = wishlistItemRepository.findByWishlistIdAndProductId(wishlist.getId(), productId);
         if (wishlistItem == null) {
             wishlistItem = new WishlistItem();
@@ -150,14 +114,7 @@ public class BuyerService {
     }
 
     public List<Product> getWishlist(String jwtToken) throws SecurityException {
-        checkBuyerAccess(jwtToken);
-        String token = jwtToken.replace("Bearer ", "");
-        Claims claims = jwtUtil.extractClaims(token);
-        String email = claims.getSubject();
-        User buyer = userRepository.findByEmail(email);
-        if (buyer == null) {
-            throw new IllegalArgumentException("Buyer not found.");
-        }
+        User buyer = checkBuyerAccess(jwtToken);
         Wishlist wishlist = wishlistRepository.findByBuyerId(buyer.getId());
         if (wishlist == null) {
             throw new IllegalArgumentException("Wishlist not found.");
@@ -167,14 +124,7 @@ public class BuyerService {
     }
 
     public void removeItemFromWishlist(Long productId, String jwtToken) throws SecurityException {
-        checkBuyerAccess(jwtToken);
-        String token = jwtToken.replace("Bearer ", "");
-        Claims claims = jwtUtil.extractClaims(token);
-        String email = claims.getSubject();
-        User buyer = userRepository.findByEmail(email);
-        if (buyer == null) {
-            throw new IllegalArgumentException("Buyer not found.");
-        }
+        User buyer = checkBuyerAccess(jwtToken);
         Wishlist wishlist = wishlistRepository.findByBuyerId(buyer.getId());
         if (wishlist == null) {
             throw new IllegalArgumentException("Wishlist not found.");
@@ -186,14 +136,7 @@ public class BuyerService {
     }
 
     public void removeItemFromCart(Long productId, String jwtToken) throws SecurityException {
-        checkBuyerAccess(jwtToken);
-        String token = jwtToken.replace("Bearer ", "");
-        Claims claims = jwtUtil.extractClaims(token);
-        String email = claims.getSubject();
-        User buyer = userRepository.findByEmail(email);
-        if (buyer == null) {
-            throw new IllegalArgumentException("Buyer not found.");
-        }
+        User buyer = checkBuyerAccess(jwtToken);
         Cart cart = cartRepository.findByBuyerId(buyer.getId());
         if (cart == null) {
             throw new IllegalArgumentException("Cart not found.");
