@@ -1,8 +1,11 @@
 package com.example.ecommerce.controller;
 
+import com.example.ecommerce.exception.CartEmptyException;
 import com.example.ecommerce.model.CartItem;
 import com.example.ecommerce.model.Product;
 import com.example.ecommerce.service.BuyerService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -13,6 +16,8 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/buyer")
 public class BuyerController {
+
+    Logger logger = LoggerFactory.getLogger(BuyerController.class);
 
     @Autowired
     private BuyerService buyerService;
@@ -33,6 +38,9 @@ public class BuyerController {
         try {
             List<CartItem> cartItems = buyerService.getCartItems(jwtToken);
             return ResponseEntity.ok(cartItems);
+        } catch (CartEmptyException e) {
+            logger.error(e.getMessage());
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         } catch (SecurityException e) {
             return new ResponseEntity<>(HttpStatus.FORBIDDEN);
         }
@@ -94,6 +102,40 @@ public class BuyerController {
         try {
             buyerService.removeItemFromWishlist(productId, jwtToken);
             return ResponseEntity.ok("Product removed from wishlist");
+        } catch (SecurityException e) {
+            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+        }
+    }
+
+    //Buyer endpoint: Update cart item quantity /api/buyer/cart/update/{productId}/{count}
+    @PutMapping("/cart/update/{productId}/{count}")
+    public ResponseEntity<String> updateCartItemQuantity(@PathVariable Long productId, @PathVariable int count, @RequestHeader("Authorization") String jwtToken) {
+        try {
+            buyerService.updateCartItemQuantity(productId, count, jwtToken);
+            return ResponseEntity.ok("Cart item quantity updated");
+        } catch (CartEmptyException e) {
+            logger.error(e.getMessage());
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        } catch (SecurityException e) {
+            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+        }
+    }
+    // Additional buyer-specific endpoints can be added here - clear wishlist
+    @DeleteMapping("/wishlist/clear")
+    public ResponseEntity<String> clearWishlist(@RequestHeader("Authorization") String jwtToken) {
+        try {
+            buyerService.clearWishlist(jwtToken);
+            return ResponseEntity.ok("Wishlist cleared");
+        } catch (SecurityException e) {
+            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+        }
+    }
+    // Additional buyer-specific endpoints can be added here - clear cart
+    @DeleteMapping("/cart/clear")
+    public ResponseEntity<String> clearCart(@RequestHeader("Authorization") String jwtToken) {
+        try {
+            buyerService.clearCart(jwtToken);
+            return ResponseEntity.ok("Cart cleared");
         } catch (SecurityException e) {
             return new ResponseEntity<>(HttpStatus.FORBIDDEN);
         }

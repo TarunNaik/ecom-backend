@@ -5,12 +5,14 @@ import com.example.ecommerce.model.User;
 import com.example.ecommerce.payload.LoginRequest;
 import com.example.ecommerce.payload.RegisterRequest;
 import com.example.ecommerce.repository.UserRepository;
+import com.example.ecommerce.service.AuthService;
 import com.example.ecommerce.service.EmailService;
 import com.example.ecommerce.service.PasswordResetService;
 import com.example.ecommerce.service.UserDetailsServiceImpl;
 import com.example.ecommerce.util.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -19,6 +21,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -43,6 +46,8 @@ public class AuthController {
     private JwtUtil jwtUtil;
     @Autowired
     private PasswordResetService passwordResetService;
+    @Autowired
+    private AuthService authService;
 
 
     @PostMapping("/forgot-password")
@@ -101,4 +106,43 @@ public class AuthController {
             return new ResponseEntity<>("Error: Invalid email or password", HttpStatus.UNAUTHORIZED);
         }
     }
+    //User Profile Endpoint
+    @GetMapping("/profile")
+    public ResponseEntity<User> getUserProfile(@RequestHeader("Authorization") String jwtToken) {
+        User user = null;
+        try {
+            String token = jwtToken.replace("Bearer ", "");
+            String email = jwtUtil.extractUsername(token);
+            user = userRepository.findByEmail(email);
+            if (user == null) {
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
+            String imageUrl = user.getImageUrl();
+            if (imageUrl != null && !imageUrl.isEmpty()) {
+                String fullImageUrl = "http://localhost:8080/images/" + imageUrl;
+                user.setImageUrl(fullImageUrl);
+            }
+
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+        }
+        return ResponseEntity.ok(user);
+    }
+    // User Profile Update Endpoint
+    @PutMapping(value = "/profile/update", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
+    public ResponseEntity<String> updateUserProfile(@RequestHeader("Authorization") String jwtToken,
+                                                    @RequestPart(value = "imageUrl", required = false) MultipartFile file,
+                                                    @RequestPart(value = "name", required = false) String name) {
+        try {
+            String token = jwtToken.replace("Bearer ", "");
+            String email = jwtUtil.extractUsername(token);
+
+            authService.updateUserProfile(file, name, email);
+            return ResponseEntity.ok("Profile updated successfully");
+        } catch (Exception e) {
+            return new ResponseEntity<>("Error updating profile", HttpStatus.FORBIDDEN);
+        }
+    }
+
+
 }

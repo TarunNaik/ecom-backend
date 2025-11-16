@@ -28,7 +28,9 @@ public class SecurityConfig {
             .userDetailsService(userDetailsService) // Configure UserDetailsService
             .authorizeHttpRequests(auth -> auth
             .requestMatchers("/h2-console/**").permitAll() // Allow H2 console access
-            .requestMatchers("/api/**").permitAll() // Allow public access to auth and product list
+            .requestMatchers("/api/**").permitAll()
+            .requestMatchers("/images/**").permitAll()
+                            // Allow public access to auth and product list
 //            .requestMatchers("/api/products/**").hasAuthority("ROLE_VENDOR") // Vendor specific endpoints
 //            .requestMatchers("/api/admin/**").hasAuthority("ADMIN") // Admin specific endpoints
             .anyRequest().authenticated()

@@ -1,9 +1,11 @@
 package com.example.ecommerce.service;
 
+import com.example.ecommerce.exception.CartEmptyException;
 import com.example.ecommerce.model.*;
 import com.example.ecommerce.repository.*;
 import com.example.ecommerce.util.JwtUtil;
 import io.jsonwebtoken.Claims;
+import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -13,6 +15,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 @Service
 public class BuyerService {
+
+    Logger logger = org.slf4j.LoggerFactory.getLogger(BuyerService.class);
 
     @Autowired
     private JwtUtil jwtUtil;
@@ -49,7 +53,7 @@ public class BuyerService {
         String email = claims.getSubject();
         User buyer = userRepository.findByEmail(email);
         if (buyer == null) {
-            throw new IllegalArgumentException("Buyer not found.");
+            logger.info("Looks like Buyer not not on boarded yet. Check with Admin.");
         }
         return buyer;
     }
@@ -89,8 +93,8 @@ public class BuyerService {
     public List<CartItem> getCartItems(String jwtToken) throws SecurityException {
         User buyer = checkBuyerAccess(jwtToken);
         Cart cart = cartRepository.findByBuyerId(buyer.getId());
-        if (cart == null) {
-            throw new IllegalArgumentException("Cart not found.");
+        if (cart == null || cart.getItems().isEmpty()) {
+            logger.info("Cart is Empty. Add your products to cart to proceed.");
         }
         return cartItemRepository.findByCartId(cart.getId());
     }
@@ -144,6 +148,37 @@ public class BuyerService {
         CartItem cartItem = cartItemRepository.findByCartIdAndProductId(cart.getId(), productId);
         if (cartItem != null) {
             cartItemRepository.delete(cartItem);
+        }
+    }
+
+    public void updateCartItemQuantity(Long productId, int count, String jwtToken) throws CartEmptyException, SecurityException {
+        User buyer = checkBuyerAccess(jwtToken);
+        Cart cart = cartRepository.findByBuyerId(buyer.getId());
+        if (cart == null || cart.getItems().isEmpty()) {
+            throw new CartEmptyException("Cart is Empty. Add your products to cart to proceed.");
+        }
+        CartItem cartItem = cartItemRepository.findByCartIdAndProductId(cart.getId(), productId);
+        if (cartItem != null) {
+            cartItem.setQuantity(count);
+            cartItemRepository.save(cartItem);
+        }
+    }
+
+    public void clearWishlist(String jwtToken) throws SecurityException {
+        User buyer = checkBuyerAccess(jwtToken);
+        Wishlist wishlist = wishlistRepository.findByBuyerId(buyer.getId());
+        if (wishlist != null) {
+            List<WishlistItem> wishlistItems = wishlistItemRepository.findByWishlistId(wishlist.getId());
+            wishlistItemRepository.deleteAll(wishlistItems);
+        }
+    }
+
+    public void clearCart(String jwtToken) throws SecurityException {
+        User buyer = checkBuyerAccess(jwtToken);
+        Cart cart = cartRepository.findByBuyerId(buyer.getId());
+        if (cart != null) {
+            List<CartItem> cartItems = cartItemRepository.findByCartId(cart.getId());
+            cartItemRepository.deleteAll(cartItems);
         }
     }
 }

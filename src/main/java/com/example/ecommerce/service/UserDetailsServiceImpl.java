@@ -9,6 +9,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
+import java.util.Map;
 
 @Service
 public class UserDetailsServiceImpl implements UserDetailsService {
@@ -28,4 +29,5 @@ public class UserDetailsServiceImpl implements UserDetailsService {
             Collections.singletonList(() -> "ROLE_" + user.getRole().toUpperCase())
         );
     }
+
 }
