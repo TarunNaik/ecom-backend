@@ -1,5 +1,6 @@
 package com.example.ecommerce.controller;
 
+import com.example.ecommerce.exception.ProductNotFoundException;
 import com.example.ecommerce.model.Product;
 import com.example.ecommerce.service.ProductService;
 import com.example.ecommerce.util.JwtUtil;
@@ -42,11 +43,9 @@ public class ProductController {
 
     // Vendor endpoint: POST /api/vendors/products
     @PostMapping("/add")
-    public ResponseEntity<Product> createProduct(@RequestBody Product product, @RequestHeader("Authorization") String authHeader) {
+    public ResponseEntity<Product> createProduct(@RequestBody Product product, @RequestHeader("Authorization") String jwtToken) {
         try {
-            String token = authHeader.replace("Bearer ", "");
-            String email = jwtUtil.extractClaims(token).getSubject(); // get email/username from JWT
-            Product createdProduct = productService.createProduct(product, email);
+            Product createdProduct = productService.createProduct(product, jwtToken);
             return new ResponseEntity<>(createdProduct, HttpStatus.CREATED);
         } catch (SecurityException e) {
             return new ResponseEntity<>(HttpStatus.FORBIDDEN);
@@ -55,11 +54,11 @@ public class ProductController {
 
     // Vendor endpoint: PUT /api/vendors/products/{id}
     @PutMapping("/update/{id}")
-    public ResponseEntity<Product> updateProduct(@PathVariable Long id, @RequestBody Product product) {
+    public ResponseEntity<Product> updateProduct(@RequestHeader("Authorization") String jwtToken,  @PathVariable Long id, @RequestBody Product product) {
         try {
-            Product updatedProduct = productService.updateProduct(id, product);
+            Product updatedProduct = productService.updateProduct(jwtToken, id, product);
             return ResponseEntity.ok(updatedProduct);
-        } catch (IllegalArgumentException e) {
+        } catch (ProductNotFoundException e) {
             return ResponseEntity.notFound().build();
         } catch (SecurityException e) {
             return new ResponseEntity<>(HttpStatus.FORBIDDEN);
@@ -68,9 +67,9 @@ public class ProductController {
 
     // Vendor endpoint: DELETE /api/vendors/products/{id}
     @DeleteMapping("/delete/{id}")
-    public ResponseEntity<Void> deleteProduct(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteProduct(@RequestHeader("Authorization") String jwtToken, @PathVariable Long id) {
         try {
-            productService.deleteProduct(id);
+            productService.deleteProduct(id, jwtToken);
             return ResponseEntity.noContent().build();
         } catch (IllegalArgumentException e) {
             return ResponseEntity.notFound().build();
